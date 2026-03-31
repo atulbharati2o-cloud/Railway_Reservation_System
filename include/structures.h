@@ -33,14 +33,5 @@ typedef struct Passenger {
     struct Passenger* nextPassenger;
 } Passenger;
 
-// Temporary passenger details for booking
-typedef struct TempPassenger {
-    char name[50];
-    char gender[10];
-    char DOB[11]; 
-    int age;
-    char berthPreference[4]; 
-    Bool gotSeat;
-} TempPassenger;
 
 #endif
