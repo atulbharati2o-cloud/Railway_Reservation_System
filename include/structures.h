@@ -3,7 +3,7 @@
 
 typedef enum { FALSE, TRUE } Bool;
 
-// Seat Node
+// Seat Node for seatList in Coach
 typedef struct Seat {
     int seatNumber;
     char berthType[4]; // L, M, U, SL, SU
@@ -12,7 +12,7 @@ typedef struct Seat {
     struct Seat* nextSeat;
 } Seat;
 
-// Coach Node
+// Coach Node for coachList in Train
 typedef struct Coach {
     int coachNumber;
     char coachType[10]; // Sleeper, 1AC, 2AC, 3AC, Engine, Pantry
@@ -21,15 +21,26 @@ typedef struct Coach {
     Seat* seatList; // Pointer to the head of the internal linked list of seats in the coach
 } Coach;
 
-// Passenger Node
+// Passenger Node for passengerList
 typedef struct Passenger {
     char name[50];
     char gender[10];
-    char DOB[11]; // DD/MM/YYYY format
+    char DOB[11]; 
     int age;
     int coachNumber;
     int seatNumber;
+    char berthType[4]; 
     struct Passenger* nextPassenger;
 } Passenger;
+
+// Temporary passenger details for booking
+typedef struct TempPassenger {
+    char name[50];
+    char gender[10];
+    char DOB[11]; 
+    int age;
+    char berthPreference[4]; 
+    Bool gotSeat;
+} TempPassenger;
 
 #endif
