@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../include/display.h"
+#include "../include/sorting.h"
 
 void displayTrain(Coach* head){
 
@@ -61,8 +64,9 @@ void displayPassengers(Passenger* head){
 
         current = current->nextPassenger;
     }
-    printf("\n===================================================================================//\n");
+    printf("\n//===================================================================================//\n");
 }
+
 
 void displayWaitlist(Passenger* waitlistHead){
     if(waitlistHead == NULL){
@@ -83,5 +87,47 @@ void displayWaitlist(Passenger* waitlistHead){
 
         current = current->nextPassenger;
     }
-    printf("\n===================================================================================//\n");
+    printf("\n//===================================================================================//\n");
 }       
+
+
+void displayParticularCoachByName(Passenger* head){
+
+    int coachNumber;
+    printf("Enter Coach Number to display its passengers: ");
+    scanf("%d", &coachNumber);
+
+    // Filter passengers of the specified coach
+    Passenger* current = head;
+    Passenger* filteredListHead = NULL;
+    while(current != NULL){
+        if(current->coachNumber == coachNumber){
+            Passenger* newNode = (Passenger*)malloc(sizeof(Passenger));
+            *newNode = *current;
+
+            //insert at head
+            newNode->nextPassenger = filteredListHead;
+            filteredListHead = newNode;
+        }
+        current = current->nextPassenger;
+    }
+
+
+    if(filteredListHead == NULL){
+        printf("\n------------ No Passengers in this Coach --------------");
+        return;
+    }
+
+    filteredListHead = sortPassengersByName(filteredListHead);
+
+    printf("\n============================== Passenger List of COACH %d(Sorted Alphabetically) =============================\n\n", coachNumber);
+    displayPassengers(filteredListHead);
+    
+
+    // Free the filtered list
+    while(filteredListHead != NULL){
+        Passenger* temp = filteredListHead;
+        filteredListHead = filteredListHead->nextPassenger;
+        free(temp);
+    }
+}

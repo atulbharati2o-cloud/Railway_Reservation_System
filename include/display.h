@@ -12,4 +12,7 @@ void displayPassengers(Passenger* head);
 // To display the waitlist with passenger details and their waitlist number
 void displayWaitlist(Passenger* waitlistHead);
 
+// To display passengers of a particular coach by their aplhabetical order of names
+void displayParticularCoachByName(Passenger* head);
+
 #endif
