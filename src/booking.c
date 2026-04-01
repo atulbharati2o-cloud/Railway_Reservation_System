@@ -332,3 +332,4 @@ void processCSVBookings(Coach* trainHead, Passenger** passengerListHead, Passeng
 
     fclose(file);
     printf("----------Finished processing CSV bookings from file--------------\n");
+}
