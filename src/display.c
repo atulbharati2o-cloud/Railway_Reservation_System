@@ -38,3 +38,50 @@ void displayTrain(Coach* head){
         currentCoach = currentCoach->nextCoach;
     }
 }
+
+
+void displayPassengers(Passenger* head){
+    if(head == NULL){
+        printf("\nNo confirmed passengers yet.\n\n");
+        return;
+    }
+
+    printf("//============================== Confirmed Passengers ==============================//\n\n");
+    Passenger* current = head;
+    while(current != NULL){
+        printf("Name: %s | Gender: %s | DOB: %s | Age: %d | Coach: %d | Seat: %d | Berth: %s\n",
+                current->name,
+                current->gender,
+                current->DOB,
+                current->age,
+                current->coachNumber,
+                current->seatNumber,
+                current->berthType
+            );
+
+        current = current->nextPassenger;
+    }
+    printf("\n===================================================================================//\n");
+}
+
+void displayWaitlist(Passenger* waitlistHead){
+    if(waitlistHead == NULL){
+        printf("\nNo passengers in waitlist.\n\n");
+        return;
+    }
+
+    printf("//============================== Waitlisted Passengers ==============================//\n\n");
+    Passenger* current = waitlistHead;
+    while(current != NULL){
+        printf("Waitlist No: %d | Name: %s | Gender: %s | DOB: %s | Age: %d\n",
+                current->seatNumber, // Using seatNumber as waitlist number
+                current->name,          
+                current->gender,
+                current->DOB,
+                current->age
+            );
+
+        current = current->nextPassenger;
+    }
+    printf("\n===================================================================================//\n");
+}       

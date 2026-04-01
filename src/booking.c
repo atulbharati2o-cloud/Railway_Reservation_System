@@ -78,11 +78,16 @@ int bookSeatsForGroup(Coach* coach, Passenger** passengerListHead, TempPassenger
             Seat* currentSeat = coach->seatList;
             while(currentSeat != NULL && !foundSeat){
                 if(!currentSeat->isBooked && (ignorePreference || strcmp(currentSeat->berthType, group[i].berthPreference) == 0)){
+
                     currentSeat->isBooked = TRUE; // Mark the seat as booked
+                    
+                    // Update the passenger's booking status
                     group[i].gotSeat = TRUE;
-                    foundSeat = TRUE;
-
-
+                    group[i].assignedCoach = coach->coachNumber;
+                    group[i].assignedSeat = currentSeat->seatNumber;
+                    strcpy(group[i].assignedBerth, currentSeat->berthType);
+                    
+                    
                     // Add the passenger to the passenger list
                     Passenger* newPassenger = (Passenger*)malloc(sizeof(Passenger));
                     
@@ -99,7 +104,8 @@ int bookSeatsForGroup(Coach* coach, Passenger** passengerListHead, TempPassenger
                     newPassenger->nextPassenger = *passengerListHead;
                     *passengerListHead = newPassenger;
                     
-
+                    
+                    foundSeat = TRUE;
                     bookedCount++;
                 }
                 currentSeat = currentSeat->nextSeat;
@@ -112,7 +118,7 @@ int bookSeatsForGroup(Coach* coach, Passenger** passengerListHead, TempPassenger
 
 // Add a passenger to the waitlist queue
 // Seatnumber here acts as the waitlist number for the passenger.
-void addToWaitlist(Passenger** waitlistHead, TempPassenger person, char* coachType){
+int addToWaitlist(Passenger** waitlistHead, TempPassenger person, char* coachType){
     Passenger* newWLPassenger = (Passenger*)malloc(sizeof(Passenger));
 
     strcpy(newWLPassenger->name, person.name);
@@ -137,7 +143,8 @@ void addToWaitlist(Passenger** waitlistHead, TempPassenger person, char* coachTy
         newWLPassenger->seatNumber = count + 1;
         current->nextPassenger = newWLPassenger;
     }
-    printf("Passenger %s added to waitlist for coach type %s with waitlist number %d\n", person.name, coachType, newWLPassenger->seatNumber);
+
+    return newWLPassenger->seatNumber;
 }
 
 void executeBooking(Coach* trainHead, Passenger** passengerListHead, Passenger** waitlistHead, char* coachType, int numberOfSeats, TempPassenger* group){
@@ -151,56 +158,77 @@ void executeBooking(Coach* trainHead, Passenger** passengerListHead, Passenger**
             if(canCoachFitGroup(currentCoach, group, numberOfSeats)){
                 // Book seats for the group in this coach
                 printf("\nWhole group accomodated in Coach %d (%s)\n", currentCoach->coachNumber, currentCoach->coachType);
-                bookSeatsForGroup(currentCoach, passengerListHead, group, numberOfSeats, FALSE);
-                return; // Booking done, exit the function
+                totalSeatsBooked = bookSeatsForGroup(currentCoach, passengerListHead, group, numberOfSeats, FALSE);
+                break; // Exit the loop as booking is done
             }
         }
         currentCoach = currentCoach->nextCoach;
     }
 
-    // Priority 2: If not possible, try to accommodate the group with their preferred berths across multiple coaches of the same type
-    currentCoach = trainHead;
-    while(currentCoach != NULL && totalSeatsBooked < numberOfSeats){
-        if(strcmp(currentCoach->coachType, coachType) == 0){
-            int bookedInThisCoach = bookSeatsForGroup(currentCoach, passengerListHead, group, numberOfSeats, FALSE); // False as we still want to respect preferences in this step
-            totalSeatsBooked += bookedInThisCoach;
+    // Priority 2: try to accommodate the group with their preferred berths across multiple coaches of the same type
+    if(totalSeatsBooked < numberOfSeats){
+        printf("\nSame-coach booking not possible. Splitting group across multiple %s coaches with berth preferences\n", coachType);
+        currentCoach = trainHead;
+        while(currentCoach != NULL && totalSeatsBooked < numberOfSeats){
+            if(strcmp(currentCoach->coachType, coachType) == 0){
+                int bookedInThisCoach = bookSeatsForGroup(currentCoach, passengerListHead, group, numberOfSeats, FALSE);
+                totalSeatsBooked += bookedInThisCoach;
+            }
+            currentCoach = currentCoach->nextCoach;
         }
-        currentCoach = currentCoach->nextCoach;
-    }
 
-    if(totalSeatsBooked == numberOfSeats){
-        printf("\nWhole group accomodated with preferences across multiple coaches of type %s\n", coachType);
-        return; // Booking done, exit the function
+        if(totalSeatsBooked == numberOfSeats){
+            printf("\nWhole group accomodated with preferences across multiple %s coaches\n\n", coachType);
+        }
     }
     
 
-    // Priority 3: If still not possible, try to accommodate maximum possible passengers with their preferred berths and then fill the remaining passengers in any available seats in coaches of the same type
+    // Priority 3: try to accommodate maximum possible passengers with their preferred berths and then fill the remaining passengers in any available seats in coaches of the same type
     // We have already booked as many passengers as possible with their preferences in the previous step, now we just need to fill the remaining passengers without caring about preferences
-    currentCoach = trainHead;
-    while(currentCoach != NULL && totalSeatsBooked < numberOfSeats){
-        if(strcmp(currentCoach->coachType, coachType) == 0){
-            int bookedInThisCoach = bookSeatsForGroup(currentCoach, passengerListHead, group, numberOfSeats, TRUE); // True to ignore preferences in this step
-            totalSeatsBooked += bookedInThisCoach;
+    if(totalSeatsBooked < numberOfSeats){
+        printf("\nStill %d passengers without seats. Filling them in any available seats in %s coaches without preferences\n", numberOfSeats - totalSeatsBooked, coachType);
+        currentCoach = trainHead;
+        while(currentCoach != NULL && totalSeatsBooked < numberOfSeats){
+            if(strcmp(currentCoach->coachType, coachType) == 0){
+                int bookedInThisCoach = bookSeatsForGroup(currentCoach, passengerListHead, group, numberOfSeats, TRUE); // True to ignore preferences in this step
+                totalSeatsBooked += bookedInThisCoach;
+            }
+            currentCoach = currentCoach->nextCoach;
         }
-        currentCoach = currentCoach->nextCoach;
     }
 
     if(totalSeatsBooked == numberOfSeats){
-        printf("\nWhole group accomodated with maximum preferences across multiple coaches of type %s\n\n", coachType);
+        printf("----SUCCESS: All %d passengers got confirmed seats in %s coaches----\n\n", numberOfSeats, coachType);
     } 
 
     // Waitlist the remaining passengers
     else{
         int unbooked = numberOfSeats - totalSeatsBooked;
-        printf("\nOnly %d tickets confirmed. %d tickets are in waiting list\n\n", totalSeatsBooked, unbooked);
+        printf("\n----ALERT: %s coaches completely filled.----\n", coachType);
+        printf("\n----PARTIAL SUCCESS: %d tickets confirmed. %d tickets are in waiting list----\n\n", totalSeatsBooked, unbooked);
 
         for(int i = 0; i < numberOfSeats; i++){
             if(!group[i].gotSeat){
-                addToWaitlist(waitlistHead, group[i], coachType);
+                int wlNumber = addToWaitlist(waitlistHead, group[i], coachType);
                 group[i].gotSeat = TRUE; 
+                group[i].assignedCoach = -1; // No coach assigned yet
+                group[i].assignedSeat = wlNumber; // Using seatNumber field to store waitlist
             }
         }
     }
+
+    
+
+    // TICKET SUMMARY
+    printf("\n------------------------------------ TICKET SUMMARY ----------------------------------\n");
+    for(int i = 0; i < numberOfSeats; i++){
+        if(group[i].assignedCoach == -1){
+            printf("Passenger: %s | Status: WAITLISTED | Waitlist Number: %d\n", group[i].name, group[i].assignedSeat);
+        } else{
+            printf("Passenger: %s | Status: CONFIRMED | Coach: %d | Seat: %d | Berth: %s\n", group[i].name, group[i].assignedCoach, group[i].assignedSeat, group[i].assignedBerth);
+        }
+    }
+    printf("----------------------------------------------------------------------------\n\n");
 
 }
 
@@ -243,3 +271,64 @@ void bookTickets(Coach* trainHead, Passenger** passengerListHead, Passenger** wa
 
     free(group); // Free the temporary group array after booking is done
 }
+
+// Function for testing bulk bookings from a CSV file
+void processCSVBookings(Coach* trainHead, Passenger** passengerListHead, Passenger** waitlistHead, const char* filename){
+    FILE* file = fopen(filename, "r");
+    if(file == NULL){
+        printf("ERROR: Could not open file %s\n", filename);
+        return;
+    }
+
+    char line[256];
+    int currentGroupID = -1;
+    char currentCoachType[10];
+    int numberOfSeats = 0;
+
+    TempPassenger group[15]; // Assuming maximum group size is 15
+
+    printf("----------Processing CSV bookings from file--------------\n");
+
+    fgets(line, sizeof(line), file); // Skip header line
+
+    // Read each line from the CSV file
+    while(fgets(line, sizeof(line), file)){
+        int groupID, age;
+        char coachType[10], name[50], gender[10], DOB[11], berthPreference[4];
+
+        if(sscanf(line, "%d,%9[^,],%49[^,],%9[^,],%10[^,],%d,%3[^,\n\r]", &groupID, coachType, name, gender, DOB, &age, berthPreference) == 7){
+
+            if(currentGroupID == -1){
+                currentGroupID = groupID;
+                strcpy(currentCoachType, coachType);
+            }
+
+            if(groupID != currentGroupID){
+                printf("\n..... Processing Group %d, Coach Type: %s, Number of Seats: %d .....\n", currentGroupID, currentCoachType, numberOfSeats);
+                executeBooking(trainHead, passengerListHead, waitlistHead, currentCoachType, numberOfSeats, group);
+                currentGroupID = groupID;
+                strcpy(currentCoachType, coachType);
+                numberOfSeats = 0;
+            }
+
+            // Add passenger details to the current group
+            strcpy(group[numberOfSeats].name, name);
+            strcpy(group[numberOfSeats].gender, gender);
+            strcpy(group[numberOfSeats].DOB, DOB);  
+            group[numberOfSeats].age = age;
+            strcpy(group[numberOfSeats].berthPreference, berthPreference);
+            group[numberOfSeats].gotSeat = FALSE; 
+
+            numberOfSeats++;
+        }
+            
+    }
+
+    // Book the last group after reading the file
+    if(numberOfSeats > 0){
+        printf("\n..... Processing Group %d, Coach Type: %s, Number of Seats: %d .....\n", currentGroupID, currentCoachType, numberOfSeats);
+        executeBooking(trainHead, passengerListHead, waitlistHead, currentCoachType, numberOfSeats, group);
+    }
+
+    fclose(file);
+    printf("----------Finished processing CSV bookings from file--------------\n");
