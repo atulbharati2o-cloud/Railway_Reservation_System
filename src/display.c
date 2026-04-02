@@ -258,7 +258,6 @@ void displayAllPassengersIn_L_or_SL_Berths(Passenger* head){
 
 
 
-
 void displaySeniorCitizensWithoutL_or_SL_Berths(Passenger* head){
     if(head == NULL){
         printf("\nNo confirmed passengers yet.\n\n");
@@ -273,4 +272,44 @@ void displaySeniorCitizensWithoutL_or_SL_Berths(Passenger* head){
         }
         current = current->nextPassenger;
     }
+}
+
+
+
+
+
+
+void displayNumberOfAvailableSeatsInEachCoach(Coach* head){
+    
+    int arr[4] = {0}; // 1AC, 2AC, 3AC, Sleeper
+    Coach* currentCoach = head;
+    while(currentCoach != NULL){
+        int index = -1;
+        if(strcmp(currentCoach->coachType, "1AC") == 0) index = 0;
+        else if(strcmp(currentCoach->coachType, "2AC") == 0) index = 1;
+        else if(strcmp(currentCoach->coachType, "3AC") == 0) index = 2;
+        else if(strcmp(currentCoach->coachType, "Sleeper") == 0) index = 3;
+
+        if(index != -1){
+            Seat* currentSeat = currentCoach->seatList;
+            while(currentSeat != NULL){
+                if(!currentSeat->isBooked){
+                    arr[index]++;
+                }
+                currentSeat = currentSeat->nextSeat;
+            }
+        }
+
+        currentCoach = currentCoach->nextCoach;
+    }
+
+    // Display
+    printf("\n============================== Available Seats in Each Coach =============================\n\n");
+    printf("Coach Type | Available Seats\n");
+    printf("-----------|----------------\n");
+    printf("1AC        | %d\n", arr[0]);
+    printf("2AC        | %d\n", arr[1]);
+    printf("3AC        | %d\n", arr[2]);
+    printf("Sleeper    | %d\n", arr[3]);
+
 }

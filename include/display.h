@@ -38,4 +38,11 @@ void displayAllPassengersIn_L_or_SL_Berths(Passenger* head);
 // To display all passengers above 60 years of age who didn't get L or SL berth
 void displaySeniorCitizensWithoutL_or_SL_Berths(Passenger* head);
 
+
+
+
+
+// To display number of available seats in each coach
+void displayNumberOfAvailableSeatsInEachCoach(Coach* head);
+
 #endif

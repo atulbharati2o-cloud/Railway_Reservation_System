@@ -28,7 +28,8 @@ int main(){
         printf("9. Display Passengers sorted by Coach Number\n");
         printf("10. Display All Passengers who were booked L or SL Berths\n");
         printf("11. Display Senior Citizens(age > 60) without L or SL Berths\n");
-        printf("12. Exit\n");
+        printf("12. Display Available Seats in Each Coach\n");
+        printf("13. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
@@ -68,12 +69,15 @@ int main(){
                 displaySeniorCitizensWithoutL_or_SL_Berths(passengerListHead);
                 break;
             case 12:
+                displayNumberOfAvailableSeatsInEachCoach(myTrain);
+                break;
+            case 13:
                 printf("Exiting the system. Goodbye!\n");
                 break;
             default:
                 printf("Invalid choice. Please try again.\n");
         }
-    }while(choice != 12);
+    }while(choice != 13);
 
     return 0;
 }
