@@ -43,6 +43,10 @@ void displayTrain(Coach* head){
 }
 
 
+
+
+
+
 void displayPassengers(Passenger* head){
     if(head == NULL){
         printf("\nNo confirmed passengers yet.\n\n");
@@ -91,43 +95,182 @@ void displayWaitlist(Passenger* waitlistHead){
 }       
 
 
-void displayParticularCoachByName(Passenger* head){
 
+
+
+
+
+void displayPassengersOfCoachSortedByName(Passenger* head){
+    if(head == NULL){
+        printf("\nNo confirmed passengers yet.\n\n");
+        return;
+    }
+
+    printf("\nEnter the coach number: ");
     int coachNumber;
-    printf("Enter Coach Number to display its passengers: ");
     scanf("%d", &coachNumber);
 
-    // Filter passengers of the specified coach
+    // First, count number of passengers in the given coach
+    int count = 0;
     Passenger* current = head;
-    Passenger* filteredListHead = NULL;
     while(current != NULL){
         if(current->coachNumber == coachNumber){
-            Passenger* newNode = (Passenger*)malloc(sizeof(Passenger));
-            *newNode = *current;
-
-            //insert at head
-            newNode->nextPassenger = filteredListHead;
-            filteredListHead = newNode;
+            count++;
         }
         current = current->nextPassenger;
     }
 
+    Passenger** arr = (Passenger**)malloc(count * sizeof(Passenger*));
 
-    if(filteredListHead == NULL){
-        printf("\n------------ No Passengers in this Coach --------------");
+    current = head;
+    int index = 0;
+    while(current != NULL){
+        if(current->coachNumber == coachNumber){
+            arr[index++] = current;
+        }
+        current = current->nextPassenger;
+    }
+
+    mergeSort(arr, 0, count - 1, SORT_BY_NAME); // Sort by name
+
+    // Display sorted passengers of the specified coach
+    printf("\n============================== Passengers of Coach %d Sorted by Name =============================\n\n", coachNumber);
+    for(int i = 0; i < count; i++){
+        printf("Name: %s | Gender: %s | DOB: %s | Age: %d | Seat: %d | Berth: %s\n",
+                arr[i]->name,
+                arr[i]->gender,
+                arr[i]->DOB,
+                arr[i]->age,
+                arr[i]->seatNumber,
+                arr[i]->berthType
+            );
+    }
+    
+    free(arr);
+}
+
+
+
+
+
+
+void displayAllPassengersSortedByName(Passenger* head){
+    if(head == NULL){
+        printf("\nNo confirmed passengers yet.\n\n");
         return;
     }
 
-    filteredListHead = sortPassengersByName(filteredListHead);
+    // Count total passengers
+    int count = 0;
+    Passenger* current = head;
+    while(current != NULL){
+        count++;
+        current = current->nextPassenger;
+    }
 
-    printf("\n============================== Passenger List of COACH %d(Sorted Alphabetically) =============================\n\n", coachNumber);
-    displayPassengers(filteredListHead);
-    
+    Passenger** arr = (Passenger**)malloc(count * sizeof(Passenger*));
 
-    // Free the filtered list
-    while(filteredListHead != NULL){
-        Passenger* temp = filteredListHead;
-        filteredListHead = filteredListHead->nextPassenger;
-        free(temp);
+    current = head;
+    int index = 0;
+    while(current != NULL){
+        arr[index++] = current;
+        current = current->nextPassenger;
+    }
+
+    mergeSort(arr, 0, count - 1, SORT_BY_NAME); // Sort by name
+
+    // Display all passengers sorted by name
+    printf("\n============================== All Passengers Sorted by Name =============================\n\n");
+    for(int i = 0; i < count; i++){
+        printf("Name: %s | Gender: %s | DOB: %s | Age: %d | Coach: %d | Seat: %d | Berth: %s\n",
+                arr[i]->name,
+                arr[i]->gender,
+                arr[i]->DOB,
+                arr[i]->age,
+                arr[i]->coachNumber,
+                arr[i]->seatNumber,
+                arr[i]->berthType
+            );
+    }
+    free(arr);
+}
+
+
+
+void displayAllPassengersSortedByCoachNumber(Passenger* head){
+    if(head == NULL){
+        printf("\nNo confirmed passengers yet.\n\n");
+        return;
+    }
+
+    // Count total passengers
+    int count = 0;
+    Passenger* current = head;
+    while(current != NULL){
+        count++;
+        current = current->nextPassenger;
+    }
+
+    Passenger** arr = (Passenger**)malloc(count * sizeof(Passenger*));
+
+    current = head;
+    int index = 0;
+    while(current != NULL){
+        arr[index++] = current;
+        current = current->nextPassenger;
+    }
+
+    mergeSort(arr, 0, count - 1, SORT_BY_COACH); // Sort by coach number
+
+    // Display all passengers sorted by coach number
+    printf("\n============================== All Passengers Sorted by Coach Number =============================\n\n");
+    for(int i = 0; i < count; i++){
+        printf("Name: %s | Gender: %s | DOB: %s | Age: %d | Coach: %d | Seat: %d | Berth: %s\n",
+                arr[i]->name,
+                arr[i]->gender,
+                arr[i]->DOB,
+                arr[i]->age,
+                arr[i]->coachNumber,
+                arr[i]->seatNumber,
+                arr[i]->berthType
+            );
+    }
+    free(arr);
+}
+
+
+
+void displayAllPassengersIn_L_or_SL_Berths(Passenger* head){
+    if(head == NULL){
+        printf("\nNo confirmed passengers yet.\n\n");
+        return;
+    }
+
+    printf("\n============================== Passengers in L or SL Berths =============================\n\n");
+    Passenger* current = head;
+    while(current != NULL){
+        if(strcmp(current->berthType, "L") == 0 || strcmp(current->berthType, "SL") == 0){
+            printf("Name: %s | Age: %d\n", current->name, current->age);
+        }
+        current = current->nextPassenger;
+    }
+}
+
+
+
+
+void displaySeniorCitizensWithoutL_or_SL_Berths(Passenger* head){
+    if(head == NULL){
+        printf("\nNo confirmed passengers yet.\n\n");
+        return;
+    }
+
+    printf("\n============================== Senior Citizens without L or SL Berths =============================\n\n");
+    Passenger* current = head;
+    while(current != NULL){
+        if(current->age > 60 && strcmp(current->berthType, "L") != 0 && strcmp(current->berthType, "SL") != 0){
+            printf("Name: %s | Age: %d\n", current->name, current->age);
+        }
+        current = current->nextPassenger;
     }
 }

@@ -24,7 +24,11 @@ int main(){
         printf("5. Display Waitlist Passengers\n");
         printf("6. Display Passengers sorted by Coach and Seat Number\n");
         printf("7. Display Passengers of a Particular Coach (Sorted by Name)\n");
-        printf("8. Exit\n");
+        printf("8. Display All Passengers sorted by Name\n");
+        printf("9. Display Passengers sorted by Coach Number\n");
+        printf("10. Display All Passengers who were booked L or SL Berths\n");
+        printf("11. Display Senior Citizens(age > 60) without L or SL Berths\n");
+        printf("12. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
@@ -49,15 +53,27 @@ int main(){
                 displayPassengers(passengerListHead);
                 break;
             case 7:
-                displayParticularCoachByName(passengerListHead);
+                displayPassengersOfCoachSortedByName(passengerListHead);
                 break;
             case 8:
+                displayAllPassengersSortedByName(passengerListHead);
+                break;
+            case 9:
+                displayAllPassengersSortedByCoachNumber(passengerListHead);
+                break;
+            case 10:
+                displayAllPassengersIn_L_or_SL_Berths(passengerListHead);
+                break;
+            case 11:
+                displaySeniorCitizensWithoutL_or_SL_Berths(passengerListHead);
+                break;
+            case 12:
                 printf("Exiting the system. Goodbye!\n");
                 break;
             default:
                 printf("Invalid choice. Please try again.\n");
         }
-    }while(choice != 8);
+    }while(choice != 12);
 
     return 0;
 }
