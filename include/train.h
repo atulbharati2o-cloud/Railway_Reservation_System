@@ -12,4 +12,10 @@ Coach* createCoach(int coachNumber, const char* coachType, int capacity);
 // Function to initialize the train with predefined coaches and seats
 Coach* initializeTrain();
 
+
+
+
+// Function to reverse the order of coaches in the train 
+void reverseTrainLayout(Coach* head);
+
 #endif

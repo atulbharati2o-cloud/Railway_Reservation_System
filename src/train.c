@@ -103,3 +103,63 @@ Coach* initializeTrain(){
 
     return head;
 }
+
+
+
+// Reverse entire list
+Coach* reverseList(Coach* head){
+    Coach* prev = NULL;
+    Coach* curr = head;
+
+    while(curr != NULL){
+        Coach* next = curr->nextCoach;
+        curr->nextCoach = prev;
+        prev = curr;
+        curr = next;
+    }
+    return prev;
+}
+
+void reverseTrainLayout(Coach* head){
+    
+    // Separate the engine first
+    Coach* engine = head;
+
+    Coach* newHead = NULL; // will become the new head of the reversed train
+
+    // Reverse each block(group of same type of coaches)
+    Coach* current = engine->nextCoach; 
+    Coach* prevTail = NULL; // tail of the previously reversed block
+    while(current != NULL){
+        Coach* blockStart = current;
+
+        while(current->nextCoach && strcmp(current->coachType, current->nextCoach->coachType) == 0){
+            current = current->nextCoach;
+        }
+        Coach* blockEnd = current; 
+        Coach* nextBlockStart = blockEnd->nextCoach; 
+        blockEnd->nextCoach = NULL;  // detach the block (now block is a standalone list)
+
+        // Reverse the current block
+        Coach* reversedBlockHead = reverseList(blockStart);
+
+        // Update the head of new train
+        if(!newHead) newHead = reversedBlockHead;
+
+        // Connect the previous block to the current reversed block
+        if(prevTail) prevTail->nextCoach = reversedBlockHead;
+
+        prevTail = blockStart; // after reversal, blockStart becomes the tail of the block
+        current = nextBlockStart; 
+    }
+
+    // Connect the last reversed block to NULL
+    if(prevTail) prevTail->nextCoach = NULL;
+
+    // Reverse the whole list except engine
+    newHead = reverseList(newHead);
+
+    // Attach engine at the front
+    engine->nextCoach = newHead;
+
+}

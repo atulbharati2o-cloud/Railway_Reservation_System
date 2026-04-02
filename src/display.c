@@ -6,12 +6,12 @@
 
 void displayTrain(Coach* head){
 
-   printf("//================================= Train Layout =================================//\n\n");
+   printf("\n\n||================= Train Layout ==================||\n\n");
 
     Coach* currentCoach = head;
     while(currentCoach != NULL){
         if(currentCoach->seatList != NULL){
-            printf("--------------------- Coach %d: %s (Capacity: %d) ---------------------\n", currentCoach->coachNumber, currentCoach->coachType, currentCoach->capacity);
+            printf("\n------------ Coach %d: %s (Capacity: %d) ------------\n\n", currentCoach->coachNumber, currentCoach->coachType, currentCoach->capacity);
 
             Seat* currentSeat = currentCoach->seatList;
             while(currentSeat != NULL){
@@ -21,21 +21,27 @@ void displayTrain(Coach* head){
                     currentSeat = currentSeat->nextSeat;
                 }
 
-                printf("[%02d|%s] [%02d|%s] [%02d|%s]      [%02d|%s]\n",
+                printf("          [%02d|%s] [%02d|%s] [%02d|%s]      [%02d|%s]\n",
                                 bay[0]->seatNumber, bay[0]->berthType,
                                 bay[1]->seatNumber, bay[1]->berthType,
                                 bay[2]->seatNumber, bay[2]->berthType,
                                 bay[7]->seatNumber, bay[7]->berthType
                 );
-                printf("[%02d|%s] [%02d|%s] [%02d|%s]      [%02d|%s]\n",
+                printf("          [%02d|%s] [%02d|%s] [%02d|%s]      [%02d|%s]\n",
                                 bay[3]->seatNumber, bay[3]->berthType,
                                 bay[4]->seatNumber, bay[4]->berthType,
                                 bay[5]->seatNumber, bay[5]->berthType,
                                 bay[6]->seatNumber, bay[6]->berthType
                 );
 
-                printf("--------------------      -------\n");
+                printf("          --------------------      -------\n");
 
+            }
+        } else{
+            if(strcmp(currentCoach->coachType, "Engine") == 0){
+                printf("\n---------------------- Engine ----------------------\n\n");
+            } else if(strcmp(currentCoach->coachType, "Pantry") == 0){
+                printf("\n---------------------- Pantry ----------------------\n\n");
             }
         }
         currentCoach = currentCoach->nextCoach;
@@ -53,7 +59,7 @@ void displayPassengers(Passenger* head){
         return;
     }
 
-    printf("//============================== Confirmed Passengers ==============================//\n\n");
+    printf("||============================== Confirmed Passengers ==============================||\n\n");
     Passenger* current = head;
     while(current != NULL){
         printf("Name: %s | Gender: %s | DOB: %s | Age: %d | Coach: %d | Seat: %d | Berth: %s\n",
@@ -68,7 +74,7 @@ void displayPassengers(Passenger* head){
 
         current = current->nextPassenger;
     }
-    printf("\n//===================================================================================//\n");
+    printf("\n||===================================================================================||\n");
 }
 
 
@@ -78,7 +84,7 @@ void displayWaitlist(Passenger* waitlistHead){
         return;
     }
 
-    printf("//============================== Waitlisted Passengers ==============================//\n\n");
+    printf("||============================== Waitlisted Passengers ==============================||\n\n");
     Passenger* current = waitlistHead;
     while(current != NULL){
         printf("Waitlist No: %d | Name: %s | Gender: %s | DOB: %s | Age: %d\n",
@@ -91,7 +97,7 @@ void displayWaitlist(Passenger* waitlistHead){
 
         current = current->nextPassenger;
     }
-    printf("\n//===================================================================================//\n");
+    printf("\n||===================================================================================||\n");
 }       
 
 
