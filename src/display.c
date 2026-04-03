@@ -59,45 +59,39 @@ void displayPassengers(Passenger* head){
         return;
     }
 
-    printf("||============================== Confirmed Passengers ==============================||\n\n");
+    printf("\n============================== Confirmed Passengers ==============================\n\n");
     Passenger* current = head;
     while(current != NULL){
-        printf("Name: %s | Gender: %s | DOB: %s | Age: %d | Coach: %d | Seat: %d | Berth: %s\n",
-                current->name,
-                current->gender,
-                current->DOB,
-                current->age,
-                current->coachNumber,
-                current->seatNumber,
-                current->berthType
-            );
-
+        printf("PNR: %d | Name: %-20s | Coach: %-3d | Seat: %-2d | Berth: %s\n", current->pnrNumber, current->name, current->coachNumber, current->seatNumber, current->berthType);
         current = current->nextPassenger;
     }
-    printf("\n||===================================================================================||\n");
+    printf("\n===================================================================================\n");
 }
 
 
-void displayWaitlist(Passenger* waitlistHead){
+void displaySingleWaitlist(Passenger* waitlistHead, char* coachType){
     if(waitlistHead == NULL){
-        printf("\nNo passengers in waitlist.\n\n");
+        printf("\nNo passengers in %s waitlist.\n\n", coachType);
         return;
     }
 
-    printf("||============================== Waitlisted Passengers ==============================||\n\n");
+    printf("\n---------- %s WAITLIST ----------\n\n", coachType);
     Passenger* current = waitlistHead;
     while(current != NULL){
-        printf("Waitlist No: %d | Name: %s | Gender: %s | DOB: %s | Age: %d\n",
-                current->seatNumber, // Using seatNumber as waitlist number
-                current->name,          
-                current->gender,
-                current->DOB,
-                current->age
-            );
-
+        printf("WL %-2d | Name: %-20s | PNR: %-3d\n", current->seatNumber, current->name, current->pnrNumber);
         current = current->nextPassenger;
     }
-    printf("\n||===================================================================================||\n");
+}
+
+void displayAllWaitlist(WaitlistManager* wm){
+    printf("\n============================== WAITLISTS ==============================\n\n");
+
+    displaySingleWaitlist(wm->sleeperWL, "Sleeper");
+    displaySingleWaitlist(wm->firstACWL, "1AC");
+    displaySingleWaitlist(wm->secondACWL, "2AC");
+    displaySingleWaitlist(wm->thirdACWL, "3AC");
+
+    printf("\n=======================================================================\n");
 }       
 
 
@@ -142,7 +136,8 @@ void displayPassengersOfCoachSortedByName(Passenger* head){
     // Display sorted passengers of the specified coach
     printf("\n============================== Passengers of Coach %d Sorted by Name =============================\n\n", coachNumber);
     for(int i = 0; i < count; i++){
-        printf("Name: %s | Gender: %s | DOB: %s | Age: %d | Seat: %d | Berth: %s\n",
+        printf("PNR: %d | Name: %-20s | Gender: %-6s | DOB: %s | Age: %-2d | Seat: %-2d | Berth: %s\n",
+                arr[i]->pnrNumber,
                 arr[i]->name,
                 arr[i]->gender,
                 arr[i]->DOB,
@@ -188,7 +183,8 @@ void displayAllPassengersSortedByName(Passenger* head){
     // Display all passengers sorted by name
     printf("\n============================== All Passengers Sorted by Name =============================\n\n");
     for(int i = 0; i < count; i++){
-        printf("Name: %s | Gender: %s | DOB: %s | Age: %d | Coach: %d | Seat: %d | Berth: %s\n",
+        printf("PNR: %d | Name: %-20s | Gender: %-6s | DOB: %s | Age: %-2d | Coach: %-3d | Seat: %-2d | Berth: %s\n",
+                arr[i]->pnrNumber,
                 arr[i]->name,
                 arr[i]->gender,
                 arr[i]->DOB,
@@ -231,7 +227,8 @@ void displayAllPassengersSortedByCoachNumber(Passenger* head){
     // Display all passengers sorted by coach number
     printf("\n============================== All Passengers Sorted by Coach Number =============================\n\n");
     for(int i = 0; i < count; i++){
-        printf("Name: %s | Gender: %s | DOB: %s | Age: %d | Coach: %d | Seat: %d | Berth: %s\n",
+        printf("PNR: %d | Name: %-20s | Gender: %-6s | DOB: %s | Age: %-2d | Coach: %-3d | Seat: %-2d | Berth: %s\n",
+                arr[i]->pnrNumber,
                 arr[i]->name,
                 arr[i]->gender,
                 arr[i]->DOB,
@@ -252,13 +249,20 @@ void displayAllPassengersIn_L_or_SL_Berths(Passenger* head){
         return;
     }
 
+    int count = 0;
+
     printf("\n============================== Passengers in L or SL Berths =============================\n\n");
     Passenger* current = head;
     while(current != NULL){
         if(strcmp(current->berthType, "L") == 0 || strcmp(current->berthType, "SL") == 0){
-            printf("Name: %s | Age: %d\n", current->name, current->age);
+            printf("PNR: %-3d | Name: %-20s | Berth: %-2s\n", current->pnrNumber, current->name, current->berthType);
         }
+        count++;
         current = current->nextPassenger;
+    }
+
+    if(count == 0){
+        printf("No passengers in L or SL berths found.\n");
     }
 }
 
@@ -270,13 +274,20 @@ void displaySeniorCitizensWithoutL_or_SL_Berths(Passenger* head){
         return;
     }
 
+    int count = 0;
+
     printf("\n============================== Senior Citizens without L or SL Berths =============================\n\n");
     Passenger* current = head;
     while(current != NULL){
         if(current->age > 60 && strcmp(current->berthType, "L") != 0 && strcmp(current->berthType, "SL") != 0){
-            printf("Name: %s | Age: %d\n", current->name, current->age);
+            printf("PNR: %-3d | Name: %-20s | Age: %-2d | Berth: %-2s\n", current->pnrNumber, current->name, current->age, current->berthType);
+            count++;
         }
         current = current->nextPassenger;
+    }
+
+    if(count == 0){
+        printf("No senior citizens without L or SL berths found.\n");
     }
 }
 
@@ -318,4 +329,28 @@ void displayNumberOfAvailableSeatsInEachCoach(Coach* head){
     printf("3AC        | %d\n", arr[2]);
     printf("Sleeper    | %d\n", arr[3]);
 
+}
+
+
+
+
+
+
+// Display Passengers by PNR number
+void displayPassengersByPNR(Passenger* head, int pnr){
+    int index = 1;
+    printf("\n------- Passengers under PNR %d -------\n", pnr);
+
+    Passenger* current = head;
+    while(current != NULL){
+        if(current->pnrNumber == pnr){
+            printf("%d. %s | Coach: %d | Seat: %d\n", index, current->name, current->coachNumber, current->seatNumber);
+            index++;
+        }
+        current = current->nextPassenger;
+    }
+
+    if(index == 1){
+        printf("No passengers found with PNR %d\n", pnr);
+    }
 }

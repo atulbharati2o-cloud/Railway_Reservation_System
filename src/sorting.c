@@ -18,9 +18,6 @@ Passenger* get_middle(Passenger* head){
 }
 
 
-
-
-
 Passenger* merge_coachNseat_sorted_passengers(Passenger* p1, Passenger* p2){
     if(p1 == NULL) return p2;
     if(p2 == NULL) return p1;
@@ -38,6 +35,7 @@ Passenger* merge_coachNseat_sorted_passengers(Passenger* p1, Passenger* p2){
     return result;
 }
 
+
 Passenger* sortPassengersByCoachAndSeat(Passenger* head) {
     if(!head || !head->nextPassenger) return head;
 
@@ -54,6 +52,9 @@ Passenger* sortPassengersByCoachAndSeat(Passenger* head) {
     // Merge the sorted halves
     return merge_coachNseat_sorted_passengers(left, right);
 }
+
+
+
 
 
 

@@ -21,19 +21,38 @@ typedef struct TempPassenger {
 } TempPassenger;
 
 
+// ============= INITIALIZATION OF WAITLIST MANAGER ============= //
+void initializeWaitlistManager(WaitlistManager* wm);
+
+
+
+// ========= BOOKING ============== //
+
 // User interface to book tickets
-void bookTickets(Coach* trainHead, Passenger** passengerListHead, Passenger** waitlistHead);
+void bookTicketsUI(Coach* trainHead, Passenger** passengerListHead, WaitlistManager* wm);
 
 // Booking logic
-void executeBooking(Coach* trainHead, Passenger** passengerListHead, Passenger** waitlistHead, char* coachType, int numberOfSeats, TempPassenger* group);
+void executeBooking(Coach* trainHead, Passenger** passengerListHead, WaitlistManager* wm, char* coachType, int numberOfSeats, TempPassenger* group);
 
-// Helper functions
-int getBerthIndex(char* berthType);
-Bool canCoachFitGroup(Coach* coach, TempPassenger* group, int numberOfSeats);
-int bookSeatsForGroup(Coach* coach, Passenger** passengerListHead, TempPassenger* group, int numberOfSeats, Bool ignorePreference);
-int addToWaitlist(Passenger** waitlistHead, TempPassenger person, char* coachType);
 
-// Function for testing 
-void processCSVBookings(Coach* trainHead, Passenger** passengerListHead, Passenger** waitlistHead, const char* filename);
+
+
+
+
+// ============= CSV BOOKING ============== //
+void processCSVBookings(Coach* trainHead, Passenger** passengerListHead, WaitlistManager* wm, const char* filename);
+
+
+
+
+
+
+// ============= CANCEL BOOKING ============== //
+void cancelTicketUI(Passenger** passengerListHead, WaitlistManager* wm, Coach* CoachListHead);
+void cancelFullTicket(Passenger** passengerListHead, WaitlistManager* wm, Coach* CoachListHead, int pnr);
+void cancelSelectedPassengers(Passenger** passengerListHead, WaitlistManager* wm, Coach* CoachListHead, int pnr, int indices[], int k);
+
+
+
 
 #endif

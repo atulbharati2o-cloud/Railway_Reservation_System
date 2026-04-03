@@ -12,8 +12,11 @@ void displayTrain(Coach* head);
 // To display the passenger list with their details and seat info
 void displayPassengers(Passenger* head);
 
-// To display the waitlist with passenger details and their waitlist number
-void displayWaitlist(Passenger* waitlistHead);
+// To display passengers in the waitlist of a particular coach type
+void displaySingleWaitlist(Passenger* waitlistHead, char* coachType);
+
+// To display passengers in all waitlists
+void displayAllWaitlist(WaitlistManager* wm);
 
 
 
@@ -44,5 +47,13 @@ void displaySeniorCitizensWithoutL_or_SL_Berths(Passenger* head);
 
 // To display number of available seats in each coach
 void displayNumberOfAvailableSeatsInEachCoach(Coach* head);
+
+
+
+
+
+
+// To display passengers by PNR number
+void displayPassengersByPNR(Passenger* head, int pnr);
 
 #endif

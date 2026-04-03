@@ -27,11 +27,28 @@ typedef struct Passenger {
     char gender[10];
     char DOB[11]; 
     int age;
+    
+    int pnrNumber;
     int coachNumber;
     int seatNumber;
+
     char berthType[4]; 
+    char coachType[10];
+
     struct Passenger* nextPassenger;
 } Passenger;
 
+
+typedef struct WaitlistManager{
+    Passenger* sleeperWL;
+    Passenger* firstACWL;
+    Passenger* secondACWL;
+    Passenger* thirdACWL;
+
+    int sleeperWLCount;
+    int firstACWLCount;
+    int secondACWLCount;
+    int thirdACWLCount;
+} WaitlistManager;
 
 #endif
