@@ -287,7 +287,6 @@ void executeBooking(Coach* trainHead, Passenger** passengerListHead, WaitlistMan
         for(int i = 0; i < numberOfSeats; i++){
             if(!group[i].gotSeat){
                 int wlNumber = addToWaitlist(wm, group[i], coachType, pnr);
-                group[i].gotSeat = TRUE; 
                 group[i].assignedCoach = -1; // No coach assigned yet
                 group[i].assignedSeat = wlNumber; // Using seatNumber field to store waitlist
             }
