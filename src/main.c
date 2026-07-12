@@ -7,16 +7,17 @@
 #include "../include/booking.h"
 #include "../include/sorting.h"
 
-int main(){
-    Coach* myTrain = initializeTrain();
-
-    Passenger* passengerListHead = NULL;
+int main() {
+    Coach* myTrain = initializeTrain();       // Root of the train AVL tree
+    Passenger* passengerListHead = NULL;      // Root of the confirmed-passenger AVL tree
     WaitlistManager wm;
 
     initializeWaitlistManager(&wm);
 
     int choice;
-    do{
+
+    do {
+        // Main menu keeps the original user flow unchanged.
         printf("\n===== Train Ticket Booking System =====\n");
         printf("1. Display Train Layout\n");
         printf("2. Book Tickets (Manual)\n");
@@ -30,16 +31,16 @@ int main(){
         printf("10. Display All Passengers who were booked L or SL Berths\n");
         printf("11. Display Senior Citizens(age > 60) without L or SL Berths\n");
         printf("12. Display Available Seats in Each Coach\n");
-        printf("13. Reverse Train Layout\n");
-        printf("14. Display Passengers by PNR\n");
-        printf("15. Cancel Ticket\n");
+        printf("13. Display Passengers by PNR\n");
+        printf("14. Cancel Ticket\n");
+        printf("15. Display Passengers by Name Range\n");
         printf("16. Exit\n");
-
 
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
-        switch(choice){
+        // Each option delegates to one logical module.
+        switch(choice) {
             case 1:
                 displayTrain(myTrain);
                 break;
@@ -56,8 +57,7 @@ int main(){
                 displayAllWaitlist(&wm);
                 break;
             case 6:
-                passengerListHead = sortPassengersByCoachAndSeat(passengerListHead);
-                displayPassengers(passengerListHead);
+                displayAllPassengersSortedByCoachAndSeat(passengerListHead);
                 break;
             case 7:
                 displayPassengersOfCoachSortedByName(passengerListHead);
@@ -77,19 +77,18 @@ int main(){
             case 12:
                 displayNumberOfAvailableSeatsInEachCoach(myTrain);
                 break;
-            case 13:
-                reverseTrainLayout(myTrain);
-                displayTrain(myTrain);
-                break;
-            case 14: {
+            case 13: {
                 int pnr;
                 printf("Enter PNR number: ");
                 scanf("%d", &pnr);
                 displayPassengersByPNR(passengerListHead, pnr);
                 break;
             }
-            case 15:
+            case 14:
                 cancelTicketUI(&passengerListHead, &wm, myTrain);
+                break;
+            case 15:
+                displayPassengersByNameRange(passengerListHead);
                 break;
             case 16:
                 printf("Exiting the system. Goodbye!\n");
@@ -98,5 +97,6 @@ int main(){
                 printf("Invalid choice. Please try again.\n");
         }
     } while(choice != 16);
+
     return 0;
 }

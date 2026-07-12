@@ -3,48 +3,50 @@
 
 typedef enum { FALSE, TRUE } Bool;
 
-// Seat Node for seatList in Coach
 typedef struct Seat {
     int seatNumber;
     char berthType[4]; // L, M, U, SL, SU
-    int coachNumber; 
+    int coachNumber;
     Bool isBooked;
-    struct Seat* nextSeat;
+    struct Seat* left;
+    struct Seat* right;
+    int height;
 } Seat;
 
-// Coach Node for coachList in Train
+
 typedef struct Coach {
     int coachNumber;
+    int orderKey;      // Internal AVL key that keeps the train layout in physical order
     char coachType[10]; // Sleeper, 1AC, 2AC, 3AC, Engine, Pantry
-    int capacity;
-    struct Coach* nextCoach;
-    Seat* seatList; // Pointer to the head of the internal linked list of seats in the coach
+    int capacity;      // Number of seats for this coach type
+    Seat* seatList;    // Root of the AVL tree that stores seats inside this coach
+    struct Coach* left;
+    struct Coach* right;
+    int height;
 } Coach;
 
-// Passenger Node for passengerList
+
 typedef struct Passenger {
     char name[50];
     char gender[10];
-    char DOB[11]; 
+    char DOB[11];
     int age;
-    
-    int pnrNumber;
-    int coachNumber;
-    int seatNumber;
-
-    char berthType[4]; 
+    int pnrNumber;     // Shared by all passengers booked together in one request
+    int coachNumber;   // Actual coach assigned to the passenger
+    int seatNumber;    // Actual seat number, or waitlist position for WL nodes
+    char berthType[4]; // Final berth assigned after booking
     char coachType[10];
-
-    struct Passenger* nextPassenger;
+    int bookingOrder;  // Unique AVL key for confirmed-passenger storage
+    struct Passenger* left;
+    struct Passenger* right;
+    int height;
 } Passenger;
 
-
-typedef struct WaitlistManager{
-    Passenger* sleeperWL;
-    Passenger* firstACWL;
-    Passenger* secondACWL;
-    Passenger* thirdACWL;
-
+typedef struct WaitlistManager {
+    Passenger* sleeperWL;   // Root of Sleeper waitlist AVL
+    Passenger* firstACWL;   // Root of 1AC waitlist AVL
+    Passenger* secondACWL;  // Root of 2AC waitlist AVL
+    Passenger* thirdACWL;   // Root of 3AC waitlist AVL
     int sleeperWLCount;
     int firstACWLCount;
     int secondACWLCount;

@@ -4,86 +4,126 @@
 #include "../include/display.h"
 #include "../include/sorting.h"
 
-void displayTrain(Coach* head){
+// ----------------------------- Passenger display helpers ------------------- //
 
-   printf("\n\n||================= Train Layout ==================||\n\n");
+static void displaySingleCoachLayout(Coach* currentCoach) {
+    if(currentCoach->seatList != NULL) {
+        printf("\n------------ Coach %d: %s (Capacity: %d) ------------\n\n", currentCoach->coachNumber, currentCoach->coachType, currentCoach->capacity);
 
-    Coach* currentCoach = head;
-    while(currentCoach != NULL){
-        if(currentCoach->seatList != NULL){
-            printf("\n------------ Coach %d: %s (Capacity: %d) ------------\n\n", currentCoach->coachNumber, currentCoach->coachType, currentCoach->capacity);
-
-            Seat* currentSeat = currentCoach->seatList;
-            while(currentSeat != NULL){
-                Seat* bay[8];
-                for(int i = 0; i < 8 && currentSeat != NULL; i++){
-                    bay[i] = currentSeat;
-                    currentSeat = currentSeat->nextSeat;
-                }
-
-                printf("          [%02d|%s] [%02d|%s] [%02d|%s]      [%02d|%s]\n",
-                                bay[0]->seatNumber, bay[0]->berthType,
-                                bay[1]->seatNumber, bay[1]->berthType,
-                                bay[2]->seatNumber, bay[2]->berthType,
-                                bay[7]->seatNumber, bay[7]->berthType
-                );
-                printf("          [%02d|%s] [%02d|%s] [%02d|%s]      [%02d|%s]\n",
-                                bay[3]->seatNumber, bay[3]->berthType,
-                                bay[4]->seatNumber, bay[4]->berthType,
-                                bay[5]->seatNumber, bay[5]->berthType,
-                                bay[6]->seatNumber, bay[6]->berthType
-                );
-
-                printf("          --------------------      -------\n");
-
-            }
-        } else{
-            if(strcmp(currentCoach->coachType, "Engine") == 0){
-                printf("\n---------------------- Engine ----------------------\n\n");
-            } else if(strcmp(currentCoach->coachType, "Pantry") == 0){
-                printf("\n---------------------- Pantry ----------------------\n\n");
-            }
+        int seatCount = countSeats(currentCoach->seatList);
+        Seat** seats = (Seat**)malloc(sizeof(Seat*) * seatCount);
+        if(seats == NULL) {
+            printf("Memory allocation failed\n");
+            exit(1);
         }
-        currentCoach = currentCoach->nextCoach;
+
+        int seatIndex = 0;
+        collectSeatsInOrder(currentCoach->seatList, seats, &seatIndex);
+
+        for(int j = 0; j < seatCount; j += 8) {
+            printf("          [%02d|%s] [%02d|%s] [%02d|%s]      [%02d|%s]\n",
+                   seats[j]->seatNumber, seats[j]->berthType,
+                   seats[j + 1]->seatNumber, seats[j + 1]->berthType,
+                   seats[j + 2]->seatNumber, seats[j + 2]->berthType,
+                   seats[j + 7]->seatNumber, seats[j + 7]->berthType);
+            printf("          [%02d|%s] [%02d|%s] [%02d|%s]      [%02d|%s]\n",
+                   seats[j + 3]->seatNumber, seats[j + 3]->berthType,
+                   seats[j + 4]->seatNumber, seats[j + 4]->berthType,
+                   seats[j + 5]->seatNumber, seats[j + 5]->berthType,
+                   seats[j + 6]->seatNumber, seats[j + 6]->berthType);
+            printf("          --------------------      -------\n");
+        }
+
+        free(seats);
+    } else {
+        if(strcmp(currentCoach->coachType, "Engine") == 0) {
+            printf("\n---------------------- Engine ----------------------\n\n");
+        } else if(strcmp(currentCoach->coachType, "Pantry") == 0) {
+            printf("\n---------------------- Pantry ----------------------\n\n");
+        }
     }
 }
 
+static void displayTrainInOrder(Coach* head) {
+    if(head == NULL) {
+        return;
+    }
 
+    displayTrainInOrder(head->left);
+    displaySingleCoachLayout(head);
+    displayTrainInOrder(head->right);
+}
 
+void displayTrain(Coach* head) {
+    printf("\n\n||================= Train Layout ==================||\n\n");
 
+    if(head == NULL) {
+        return;
+    }
 
+    displayTrainInOrder(head);
+}
 
-void displayPassengers(Passenger* head){
-    if(head == NULL){
+void displayPassengers(Passenger* head) {
+    // Confirmed passengers are already stored by booking order, so the tree walk shows reservation sequence.
+    int count = countPassengers(head);
+
+    if(count == 0) {
         printf("\nNo confirmed passengers yet.\n\n");
         return;
     }
 
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * count);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+
+    int index = 0;
+    collectPassengersInOrder(head, arr, &index);
+
     printf("\n============================== Confirmed Passengers ==============================\n\n");
-    Passenger* current = head;
-    while(current != NULL){
-        printf("PNR: %d | Name: %-20s | Coach: %-3d | Seat: %-2d | Berth: %s\n", current->pnrNumber, current->name, current->coachNumber, current->seatNumber, current->berthType);
-        current = current->nextPassenger;
+    for(int i = 0; i < count; i++) {
+        printf("PNR: %d | Name: %-20s | Coach: %-3d | Seat: %-2d | Berth: %s\n",
+               arr[i]->pnrNumber,
+               arr[i]->name,
+               arr[i]->coachNumber,
+               arr[i]->seatNumber,
+               arr[i]->berthType);
     }
     printf("\n===================================================================================\n");
+    free(arr);
 }
 
+// ----------------------------- Waitlist display --------------------------- //
 
-void displaySingleWaitlist(Passenger* waitlistHead, char* coachType){
-    if(waitlistHead == NULL){
+void displaySingleWaitlist(Passenger* waitlistHead, const char* coachType) {
+    // Waitlist nodes use seatNumber as the waiting-list position, so this shows the waiting order.
+    int count = countPassengers(waitlistHead);
+
+    if(count == 0) {
         printf("\nNo passengers in %s waitlist.\n\n", coachType);
         return;
     }
 
-    printf("\n---------- %s WAITLIST ----------\n\n", coachType);
-    Passenger* current = waitlistHead;
-    while(current != NULL){
-        printf("WL %-2d | Name: %-20s | PNR: %-3d\n", current->seatNumber, current->name, current->pnrNumber);
-        current = current->nextPassenger;
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * count);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
     }
+
+    int index = 0;
+    collectPassengersInOrder(waitlistHead, arr, &index);
+
+    printf("\n---------- %s WAITLIST ----------\n\n", coachType);
+    for(int i = 0; i < count; i++) {
+        printf("WL %-2d | Name: %-20s | PNR: %-3d\n", arr[i]->seatNumber, arr[i]->name, arr[i]->pnrNumber);
+    }
+    free(arr);
 }
 
-void displayAllWaitlist(WaitlistManager* wm){
+void displayAllWaitlist(WaitlistManager* wm) {
+    // Show every coach-type waitlist separately so the user can see where each passenger is waiting.
     printf("\n============================== WAITLISTS ==============================\n\n");
 
     displaySingleWaitlist(wm->sleeperWL, "Sleeper");
@@ -92,61 +132,98 @@ void displayAllWaitlist(WaitlistManager* wm){
     displaySingleWaitlist(wm->thirdACWL, "3AC");
 
     printf("\n=======================================================================\n");
-}       
+}
 
 
 
 
 
 
+// ============================ QUESTION 2 ============================ //
+// Sort all passengers by coach-number and seat-number.
 
-void displayPassengersOfCoachSortedByName(Passenger* head){
-    if(head == NULL){
+void displayAllPassengersSortedByCoachAndSeat(Passenger* head) {
+    int count = countPassengers(head);
+
+    if(count == 0) {
         printf("\nNo confirmed passengers yet.\n\n");
         return;
     }
 
-    printf("\nEnter the coach number: ");
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * count);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+
+    int index = 0;
+    collectPassengersInOrder(head, arr, &index);
+    mergeSort(arr, 0, count - 1, SORT_BY_COACH_AND_SEAT);
+
+    printf("\n============================== All Passengers Sorted by Coach Number and Seat Number =============================\n\n");
+    for(int i = 0; i < count; i++) {
+        printf("PNR: %d | Name: %-20s | Gender: %-6s | DOB: %s | Age: %-2d | Coach: %-3d | Seat: %-2d | Berth: %s\n",
+               arr[i]->pnrNumber,
+               arr[i]->name,
+               arr[i]->gender,
+               arr[i]->DOB,
+               arr[i]->age,
+               arr[i]->coachNumber,
+               arr[i]->seatNumber,
+               arr[i]->berthType);
+    }
+
+    free(arr);
+}
+
+
+
+
+
+
+// ============================ QUESTION 3 ============================ //
+// Sort passengers of a particular coach by passenger-name alphabetically.
+
+void displayPassengersOfCoachSortedByName(Passenger* head) {
+    if(head == NULL) {
+        printf("\nNo confirmed passengers yet.\n\n");
+        return;
+    }
+
     int coachNumber;
+    printf("\nEnter the coach number: ");
     scanf("%d", &coachNumber);
 
-    // First, count number of passengers in the given coach
+    int total = countPassengers(head);
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * total);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+
     int count = 0;
-    Passenger* current = head;
-    while(current != NULL){
-        if(current->coachNumber == coachNumber){
-            count++;
-        }
-        current = current->nextPassenger;
+    collectPassengersByCoachNumber(head, coachNumber, arr, &count);
+
+    if(count == 0) {
+        printf("\nNo passengers found for coach %d.\n", coachNumber);
+        free(arr);
+        return;
     }
 
-    Passenger** arr = (Passenger**)malloc(count * sizeof(Passenger*));
+    mergeSort(arr, 0, count - 1, SORT_BY_NAME);
 
-    current = head;
-    int index = 0;
-    while(current != NULL){
-        if(current->coachNumber == coachNumber){
-            arr[index++] = current;
-        }
-        current = current->nextPassenger;
-    }
-
-    mergeSort(arr, 0, count - 1, SORT_BY_NAME); // Sort by name
-
-    // Display sorted passengers of the specified coach
     printf("\n============================== Passengers of Coach %d Sorted by Name =============================\n\n", coachNumber);
-    for(int i = 0; i < count; i++){
+    for(int i = 0; i < count; i++) {
         printf("PNR: %d | Name: %-20s | Gender: %-6s | DOB: %s | Age: %-2d | Seat: %-2d | Berth: %s\n",
-                arr[i]->pnrNumber,
-                arr[i]->name,
-                arr[i]->gender,
-                arr[i]->DOB,
-                arr[i]->age,
-                arr[i]->seatNumber,
-                arr[i]->berthType
-            );
+               arr[i]->pnrNumber,
+               arr[i]->name,
+               arr[i]->gender,
+               arr[i]->DOB,
+               arr[i]->age,
+               arr[i]->seatNumber,
+               arr[i]->berthType);
     }
-    
+
     free(arr);
 }
 
@@ -155,140 +232,144 @@ void displayPassengersOfCoachSortedByName(Passenger* head){
 
 
 
-void displayAllPassengersSortedByName(Passenger* head){
-    if(head == NULL){
+// ============================ QUESTION 4 ============================ //
+// Display functions.
+
+void displayAllPassengersSortedByName(Passenger* head) {
+    int count = countPassengers(head);
+
+    if(count == 0) {
         printf("\nNo confirmed passengers yet.\n\n");
         return;
     }
 
-    // Count total passengers
-    int count = 0;
-    Passenger* current = head;
-    while(current != NULL){
-        count++;
-        current = current->nextPassenger;
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * count);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
     }
 
-    Passenger** arr = (Passenger**)malloc(count * sizeof(Passenger*));
-
-    current = head;
     int index = 0;
-    while(current != NULL){
-        arr[index++] = current;
-        current = current->nextPassenger;
-    }
+    collectPassengersInOrder(head, arr, &index);
+    mergeSort(arr, 0, count - 1, SORT_BY_NAME);
 
-    mergeSort(arr, 0, count - 1, SORT_BY_NAME); // Sort by name
-
-    // Display all passengers sorted by name
     printf("\n============================== All Passengers Sorted by Name =============================\n\n");
-    for(int i = 0; i < count; i++){
+    for(int i = 0; i < count; i++) {
         printf("PNR: %d | Name: %-20s | Gender: %-6s | DOB: %s | Age: %-2d | Coach: %-3d | Seat: %-2d | Berth: %s\n",
-                arr[i]->pnrNumber,
-                arr[i]->name,
-                arr[i]->gender,
-                arr[i]->DOB,
-                arr[i]->age,
-                arr[i]->coachNumber,
-                arr[i]->seatNumber,
-                arr[i]->berthType
-            );
+               arr[i]->pnrNumber,
+               arr[i]->name,
+               arr[i]->gender,
+               arr[i]->DOB,
+               arr[i]->age,
+               arr[i]->coachNumber,
+               arr[i]->seatNumber,
+               arr[i]->berthType);
     }
+
     free(arr);
 }
 
 
+void displayAllPassengersSortedByCoachNumber(Passenger* head) {
+    int count = countPassengers(head);
 
-void displayAllPassengersSortedByCoachNumber(Passenger* head){
-    if(head == NULL){
+    if(count == 0) {
         printf("\nNo confirmed passengers yet.\n\n");
         return;
     }
 
-    // Count total passengers
-    int count = 0;
-    Passenger* current = head;
-    while(current != NULL){
-        count++;
-        current = current->nextPassenger;
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * count);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
     }
 
-    Passenger** arr = (Passenger**)malloc(count * sizeof(Passenger*));
-
-    current = head;
     int index = 0;
-    while(current != NULL){
-        arr[index++] = current;
-        current = current->nextPassenger;
-    }
+    collectPassengersInOrder(head, arr, &index);
+    mergeSort(arr, 0, count - 1, SORT_BY_COACH);
 
-    mergeSort(arr, 0, count - 1, SORT_BY_COACH); // Sort by coach number
-
-    // Display all passengers sorted by coach number
     printf("\n============================== All Passengers Sorted by Coach Number =============================\n\n");
-    for(int i = 0; i < count; i++){
+    for(int i = 0; i < count; i++) {
         printf("PNR: %d | Name: %-20s | Gender: %-6s | DOB: %s | Age: %-2d | Coach: %-3d | Seat: %-2d | Berth: %s\n",
-                arr[i]->pnrNumber,
-                arr[i]->name,
-                arr[i]->gender,
-                arr[i]->DOB,
-                arr[i]->age,
-                arr[i]->coachNumber,
-                arr[i]->seatNumber,
-                arr[i]->berthType
-            );
+               arr[i]->pnrNumber,
+               arr[i]->name,
+               arr[i]->gender,
+               arr[i]->DOB,
+               arr[i]->age,
+               arr[i]->coachNumber,
+               arr[i]->seatNumber,
+               arr[i]->berthType);
     }
+
     free(arr);
 }
 
 
+void displayAllPassengersIn_L_or_SL_Berths(Passenger* head) {
+    int count = countPassengers(head);
 
-void displayAllPassengersIn_L_or_SL_Berths(Passenger* head){
-    if(head == NULL){
+    if(count == 0) {
         printf("\nNo confirmed passengers yet.\n\n");
         return;
     }
 
-    int count = 0;
-
-    printf("\n============================== Passengers in L or SL Berths =============================\n\n");
-    Passenger* current = head;
-    while(current != NULL){
-        if(strcmp(current->berthType, "L") == 0 || strcmp(current->berthType, "SL") == 0){
-            printf("PNR: %-3d | Name: %-20s | Berth: %-2s\n", current->pnrNumber, current->name, current->berthType);
-        }
-        count++;
-        current = current->nextPassenger;
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * count);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
     }
 
-    if(count == 0){
+    int index = 0;
+    collectPassengersInOrder(head, arr, &index);
+
+    int found = 0;
+    printf("\n============================== Passengers in L or SL Berths =============================\n\n");
+    for(int i = 0; i < count; i++) {
+        if(strcmp(arr[i]->berthType, "L") == 0 || strcmp(arr[i]->berthType, "SL") == 0) {
+            printf("PNR: %-3d | Name: %-20s | Age: %-2d | Berth: %-2s\n", arr[i]->pnrNumber, arr[i]->name, arr[i]->age, arr[i]->berthType);
+            found = 1;
+        }
+    }
+
+    if(!found) {
         printf("No passengers in L or SL berths found.\n");
     }
+
+    free(arr);
 }
 
 
+void displaySeniorCitizensWithoutL_or_SL_Berths(Passenger* head) {
+    int count = countPassengers(head);
 
-void displaySeniorCitizensWithoutL_or_SL_Berths(Passenger* head){
-    if(head == NULL){
+    if(count == 0) {
         printf("\nNo confirmed passengers yet.\n\n");
         return;
     }
 
-    int count = 0;
-
-    printf("\n============================== Senior Citizens without L or SL Berths =============================\n\n");
-    Passenger* current = head;
-    while(current != NULL){
-        if(current->age > 60 && strcmp(current->berthType, "L") != 0 && strcmp(current->berthType, "SL") != 0){
-            printf("PNR: %-3d | Name: %-20s | Age: %-2d | Berth: %-2s\n", current->pnrNumber, current->name, current->age, current->berthType);
-            count++;
-        }
-        current = current->nextPassenger;
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * count);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
     }
 
-    if(count == 0){
+    int index = 0;
+    collectPassengersInOrder(head, arr, &index);
+
+    int found = 0;
+    printf("\n============================== Senior Citizens without L or SL Berths =============================\n\n");
+    for(int i = 0; i < count; i++) {
+        if(arr[i]->age > 60 && strcmp(arr[i]->berthType, "L") != 0 && strcmp(arr[i]->berthType, "SL") != 0) {
+            printf("PNR: %-3d | Name: %-20s | Age: %-2d | Berth: %-2s\n", arr[i]->pnrNumber, arr[i]->name, arr[i]->age, arr[i]->berthType);
+            found = 1;
+        }
+    }
+
+    if(!found) {
         printf("No senior citizens without L or SL berths found.\n");
     }
+
+    free(arr);
 }
 
 
@@ -296,31 +377,58 @@ void displaySeniorCitizensWithoutL_or_SL_Berths(Passenger* head){
 
 
 
-void displayNumberOfAvailableSeatsInEachCoach(Coach* head){
-    
-    int arr[4] = {0}; // 1AC, 2AC, 3AC, Sleeper
-    Coach* currentCoach = head;
-    while(currentCoach != NULL){
-        int index = -1;
-        if(strcmp(currentCoach->coachType, "1AC") == 0) index = 0;
-        else if(strcmp(currentCoach->coachType, "2AC") == 0) index = 1;
-        else if(strcmp(currentCoach->coachType, "3AC") == 0) index = 2;
-        else if(strcmp(currentCoach->coachType, "Sleeper") == 0) index = 3;
+// ============================ QUESTION 5 ============================ //
+// Display number of available seats of each type of coach.
 
-        if(index != -1){
-            Seat* currentSeat = currentCoach->seatList;
-            while(currentSeat != NULL){
-                if(!currentSeat->isBooked){
-                    arr[index]++;
-                }
-                currentSeat = currentSeat->nextSeat;
-            }
-        }
+static void countAvailableSeatsInCoach(Coach* coach, int arr[4]) {
+    int index = -1;
+    if(strcmp(coach->coachType, "1AC") == 0) index = 0;
+    else if(strcmp(coach->coachType, "2AC") == 0) index = 1;
+    else if(strcmp(coach->coachType, "3AC") == 0) index = 2;
+    else if(strcmp(coach->coachType, "Sleeper") == 0) index = 3;
 
-        currentCoach = currentCoach->nextCoach;
+    if(index == -1 || coach->seatList == NULL) {
+        return;
     }
 
-    // Display
+    int seatCount = countSeats(coach->seatList);
+    Seat** seats = (Seat**)malloc(sizeof(Seat*) * seatCount);
+    if(seats == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+
+    int seatIndex = 0;
+    collectSeatsInOrder(coach->seatList, seats, &seatIndex);
+    for(int j = 0; j < seatCount; j++) {
+        if(!seats[j]->isBooked) {
+            arr[index]++;
+        }
+    }
+    free(seats);
+}
+
+
+static void countAvailableSeatsInOrder(Coach* head, int arr[4]) {
+    if(head == NULL) {
+        return;
+    }
+
+    countAvailableSeatsInOrder(head->left, arr);
+    countAvailableSeatsInCoach(head, arr);
+    countAvailableSeatsInOrder(head->right, arr);
+}
+
+
+void displayNumberOfAvailableSeatsInEachCoach(Coach* head) {
+    int arr[4] = {0};
+    if(head == NULL) {
+        printf("\nNo coaches found.\n");
+        return;
+    }
+
+    countAvailableSeatsInOrder(head, arr);
+
     printf("\n============================== Available Seats in Each Coach =============================\n\n");
     printf("Coach Type | Available Seats\n");
     printf("-----------|----------------\n");
@@ -328,7 +436,6 @@ void displayNumberOfAvailableSeatsInEachCoach(Coach* head){
     printf("2AC        | %d\n", arr[1]);
     printf("3AC        | %d\n", arr[2]);
     printf("Sleeper    | %d\n", arr[3]);
-
 }
 
 
@@ -336,21 +443,97 @@ void displayNumberOfAvailableSeatsInEachCoach(Coach* head){
 
 
 
-// Display Passengers by PNR number
-void displayPassengersByPNR(Passenger* head, int pnr){
-    int index = 1;
-    printf("\n------- Passengers under PNR %d -------\n", pnr);
+// ============================ QUESTION 7 ============================ //
+// Range search by lexicographic passenger-name bounds (inclusive).
 
-    Passenger* current = head;
-    while(current != NULL){
-        if(current->pnrNumber == pnr){
-            printf("%d. %s | Coach: %d | Seat: %d\n", index, current->name, current->coachNumber, current->seatNumber);
-            index++;
+void displayPassengersByNameRange(Passenger* head) {
+    int count = countPassengers(head);
+    if(count == 0) {
+        printf("\nNo confirmed passengers yet.\n\n");
+        return;
+    }
+
+    char name1[50], name2[50];
+    printf("Enter first name (N1): ");
+    scanf(" %49[^\n]", name1);
+    printf("Enter second name (N2): ");
+    scanf(" %49[^\n]", name2);
+
+    char lower[50], upper[50];
+    if(strcmp(name1, name2) <= 0) {
+        strcpy(lower, name1);
+        strcpy(upper, name2);
+    } else {
+        strcpy(lower, name2);
+        strcpy(upper, name1);
+    }
+
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * count);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+
+    int index = 0;
+    collectPassengersInOrder(head, arr, &index);
+    mergeSort(arr, 0, count - 1, SORT_BY_NAME);
+
+    int found = 0;
+    printf("\n============================== Passengers with Names in Range [%s, %s] ==============================\n\n", lower, upper);
+    for(int i = 0; i < count; i++) {
+        if(strcmp(arr[i]->name, lower) >= 0 && strcmp(arr[i]->name, upper) <= 0) {
+            printf("PNR: %d | Name: %-20s | Gender: %-6s | DOB: %s | Age: %-2d | Coach: %-3d | Seat: %-2d | Berth: %s\n",
+                   arr[i]->pnrNumber,
+                   arr[i]->name,
+                   arr[i]->gender,
+                   arr[i]->DOB,
+                   arr[i]->age,
+                   arr[i]->coachNumber,
+                   arr[i]->seatNumber,
+                   arr[i]->berthType);
+            found = 1;
         }
-        current = current->nextPassenger;
     }
 
-    if(index == 1){
-        printf("No passengers found with PNR %d\n", pnr);
+    if(!found) {
+        printf("No passengers found in the given name range.\n");
     }
+
+    free(arr);
+}
+
+
+
+
+
+// ----------------------------- PNR lookup --------------------------------- //
+
+void displayPassengersByPNR(Passenger* head, int pnr) {
+    int count = countPassengers(head);
+    if(count == 0) {
+        printf("\nNo passengers found with PNR %d\n", pnr);
+        return;
+    }
+
+    Passenger** arr = (Passenger**)malloc(sizeof(Passenger*) * count);
+    if(arr == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+
+    int index = 0;
+    collectPassengersByPNR(head, pnr, arr, &index);
+
+    printf("\n------- Passengers under PNR %d -------\n", pnr);
+    if(index == 0) {
+        printf("No passengers found with PNR %d\n", pnr);
+        free(arr);
+        return;
+    }
+
+    for(int i = 0; i < index; i++) {
+        printf("%d. %s | Coach: %d | Seat: %d\n", i + 1, arr[i]->name, arr[i]->coachNumber, arr[i]->seatNumber);
+    }
+
+    free(arr);
 }
